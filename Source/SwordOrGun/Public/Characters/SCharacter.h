@@ -23,6 +23,7 @@ public:
 
     bool IsDead() const { return bIsDead; }
 
+
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", Meta = (AllowPrivateAccess))
     TObjectPtr<class USpringArmComponent> SpringArmComponent;

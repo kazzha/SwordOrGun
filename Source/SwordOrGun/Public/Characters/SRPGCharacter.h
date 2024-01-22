@@ -13,6 +13,8 @@ UCLASS()
 class SWORDORGUN_API ASRPGCharacter : public ASCharacter
 {
 	GENERATED_BODY()
+
+    friend class UAN_CheckHit;
 	
 public:
     ASRPGCharacter();
@@ -26,6 +28,8 @@ public:
     UFUNCTION()
     void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
+    virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent,
+        AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -39,6 +43,14 @@ private:
 
     UFUNCTION()
     void CheckHit();
+
+    void BeginCombo();
+
+    UFUNCTION()
+    void CheckCanNextCombo();
+
+    UFUNCTION()
+    void EndCombo(class UAnimMontage* InAnimMontage, bool bInterrupted);
 
 private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
@@ -54,4 +66,16 @@ private:
     float RightInputValue;
 
     uint8 bIsAttacking : 1;
+
+    FString AttackAnimMontageSectionName = FString(TEXT("Attack"));
+
+    int32 MaxComboCount = 3;
+
+    int32 CurrentComboCount = 0;
+
+    bool bIsAttackKeyPressed = false;
+
+    float AttackRange = 200.f;
+
+    float AttackRadius = 50.f;
 };
