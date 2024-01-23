@@ -30,10 +30,11 @@ private:
     void OnPatrolTimerElapsed();
 
 public:
+    /*
     FTimerHandle PatrolTimerHandle = FTimerHandle();
 
     static const float PatrolRepeatInterval;
-
+    */
     static const float PatrolRadius;
 
     static const FName StartPatrolPositionKey;

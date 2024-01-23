@@ -1,12 +1,12 @@
 #include "AI/BTTask_GetEndPatrolPosition.h"
 #include "Controllers/SAIController.h"
-#include "Characters/SNonPlayerCharacter.h"
+#include "Characters/SNonPlayerCharacter2.h"
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 UBTTask_GetEndPatrolPosition::UBTTask_GetEndPatrolPosition()
 {
-    NodeName = TEXT("GetEndPatrolPosition"); // Behavior Tree에 보일 노드 이름.
+    NodeName = TEXT("GetEndPatrolPosition"); 
 }
 
 EBTNodeResult::Type UBTTask_GetEndPatrolPosition::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -24,7 +24,7 @@ EBTNodeResult::Type UBTTask_GetEndPatrolPosition::ExecuteTask(UBehaviorTreeCompo
         return Result = EBTNodeResult::Failed;
     }
 
-    ASNonPlayerCharacter* NPC = Cast<ASNonPlayerCharacter>(AIController->GetPawn());
+    ASNonPlayerCharacter2* NPC = Cast<ASNonPlayerCharacter2>(AIController->GetPawn());
     if (false == ::IsValid(NPC))
     {
         return Result = EBTNodeResult::Failed;
@@ -38,7 +38,7 @@ EBTNodeResult::Type UBTTask_GetEndPatrolPosition::ExecuteTask(UBehaviorTreeCompo
 
     FVector StartPatrolPosition = OwnerComp.GetBlackboardComponent()->GetValueAsVector(ASAIController::StartPatrolPositionKey);
     FNavLocation EndPatrolLocation;
-    if (true == NS->GetRandomPointInNavigableRadius(FVector::ZeroVector, AIController->PatrolRadius, EndPatrolLocation))
+    if (true == NS->GetRandomReachablePointInRadius(FVector::ZeroVector, AIController->PatrolRadius, EndPatrolLocation))
     {
         OwnerComp.GetBlackboardComponent()->SetValueAsVector(ASAIController::EndPatrolPositionKey, EndPatrolLocation.Location);
         return Result = EBTNodeResult::Succeeded;

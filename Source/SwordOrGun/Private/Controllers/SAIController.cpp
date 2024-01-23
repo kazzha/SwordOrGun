@@ -7,7 +7,6 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-const float ASAIController::PatrolRepeatInterval(3.f);
 const float ASAIController::PatrolRadius(500.f);
 const FName ASAIController::StartPatrolPositionKey(TEXT("StartPatrolPosition"));
 const FName ASAIController::EndPatrolPositionKey(TEXT("EndPatrolPosition"));
@@ -47,16 +46,19 @@ void ASAIController::BeginPlay()
 {
     Super::BeginPlay();
 
-    GetWorld()->GetTimerManager().SetTimer(PatrolTimerHandle, this, &ThisClass::OnPatrolTimerElapsed, PatrolRepeatInterval, true);
+    APawn* ControlledPawn = GetPawn();
+    if (true == ::IsValid(ControlledPawn))
+    {
+        BeginAI(ControlledPawn);
+    }
 }
-
 
 
 void ASAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     Super::EndPlay(EndPlayReason);
 
-    GetWorld()->GetTimerManager().ClearTimer(PatrolTimerHandle);
+    EndAI();
 }
 
 void ASAIController::OnPatrolTimerElapsed()
