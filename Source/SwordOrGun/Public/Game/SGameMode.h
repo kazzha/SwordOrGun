@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -17,4 +15,5 @@ class SWORDORGUN_API ASGameMode : public AGameModeBase
 public:
 	ASGameMode();
 	
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 };

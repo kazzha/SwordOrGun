@@ -24,6 +24,8 @@ public:
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent,
 		AController* EventInstigator, AActor* DamageCauser) override;
 
+	virtual void SetWidget(class USwordUserWidget* InSwordUserWidget) override;
+
 private:
 	void Attack();
 
@@ -36,4 +38,8 @@ private:
 	float AttackRadius = 50.f;
 
 	bool bIsAttacking = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASNonPlayerCharacter2", Meta = (AllowPrivateAccess))
+	TObjectPtr<class USWidgetComponent> WidgetComponent;
+
 };

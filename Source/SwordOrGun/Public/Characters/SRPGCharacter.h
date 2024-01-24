@@ -31,6 +31,7 @@ public:
     virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent,
         AController* EventInstigator, AActor* DamageCauser) override;
 
+    /*
     float GetMaxEXP() const { return MaxEXP; }
 
     float GetCurrentEXP() const { return CurrentEXP; }
@@ -38,6 +39,7 @@ public:
     void SetMaxEXP(float InMaxEXP) { MaxEXP = InMaxEXP; }
 
     void SetCurrentEXP(float InCurrentEXP);
+    */
 
 protected:
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -59,6 +61,9 @@ private:
 
     UFUNCTION()
     void EndCombo(class UAnimMontage* InAnimMontage, bool bInterrupted);
+
+    UFUNCTION()
+    void OnCurrentLevelChanged(int32 InOldCurrentLevel, int32 InNewCurrentLevel);
 
 private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
@@ -90,9 +95,11 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     TObjectPtr<class UParticleSystemComponent> ParticleSystemComponent;
 
+    /*
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     float MaxEXP = 10;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     float CurrentEXP = 0;
+    */
 };
