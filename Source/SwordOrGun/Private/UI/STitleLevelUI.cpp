@@ -42,5 +42,5 @@ void USTitleLevelUI::OnExitGameButtonClicked()
 
 void USTitleLevelUI::OnSavedGameButtonClicked()
 {
-	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("Loading")), true, FString(TEXT("NextLevel=Round01?Saved=true")));
+	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("Loading")), true, FString(TEXT("NextLevel=Lobby?Saved=false")));
 }
