@@ -15,6 +15,10 @@
 #include "Inputs/SInputConfigData.h"
 #include "Animations/SAnimInstance.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Game/SPlayerState.h"
+#include "SPlayerCharacterSettings.h"
+#include "Game/SGameInstance.h"
+#include "Engine/StreamableManager.h"
 
 ASRPGCharacter::ASRPGCharacter() 
     : bIsAttacking(false)
@@ -40,6 +44,17 @@ ASRPGCharacter::ASRPGCharacter()
     ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
     ParticleSystemComponent->SetupAttachment(GetRootComponent());
     ParticleSystemComponent->SetAutoActivate(false);
+
+    const USPlayerCharacterSettings* CDO = GetDefault<USPlayerCharacterSettings>();
+    if (0 < CDO->PlayerCharacterMeshPaths.Num())
+    {
+        for (FSoftObjectPath PlayerCharacterMeshPath : CDO->PlayerCharacterMeshPaths)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Path: %s"), *(PlayerCharacterMeshPath.ToString()));
+        }
+    }
+
+
 }
 
 void ASRPGCharacter::BeginPlay()
@@ -64,6 +79,42 @@ void ASRPGCharacter::BeginPlay()
         AnimInstance->OnCheckCanNextComboDelegate.AddDynamic(this, &ThisClass::CheckCanNextCombo);
     }
 
+    ASPlayerState* PS = GetPlayerState<ASPlayerState>();
+    if (true == ::IsValid(PS))
+    {
+        if (false == PS->OnCurrentLevelChangedDelegate.IsAlreadyBound(this, &ThisClass::OnCurrentLevelChanged))
+        {
+            PS->OnCurrentLevelChangedDelegate.AddDynamic(this, &ThisClass::OnCurrentLevelChanged);
+        }
+    }
+
+    /*
+    const USPlayerCharacterSettings* CDO = GetDefault<USPlayerCharacterSettings>();
+    int32 RandIndex = FMath::RandRange(0, CDO->PlayerCharacterMeshPaths.Num() - 1);
+    CurrentPlayerCharacterMeshPath = CDO->PlayerCharacterMeshPaths[RandIndex];
+
+    USGameInstance* SGI = Cast<USGameInstance>(GetGameInstance());
+    if (true == ::IsValid(SGI))
+    {
+        AssetStreamableHandle = SGI->StreamableManager.RequestAsyncLoad(
+            CurrentPlayerCharacterMeshPath,
+            FStreamableDelegate::CreateUObject(this, &ThisClass::OnAssetLoaded)
+        );
+    }
+    */
+
+    const USPlayerCharacterSettings* CDO = GetDefault<USPlayerCharacterSettings>();
+    int32 SelectedMeshIndex = static_cast<int32>(PS->GetCurrentTeamType()) - 1;
+    CurrentPlayerCharacterMeshPath = CDO->PlayerCharacterMeshPaths[SelectedMeshIndex];
+
+    if (USGameInstance* SGI = Cast<USGameInstance>(GetGameInstance()))
+    {
+        AssetStreamableHandle = SGI->StreamableManager.RequestAsyncLoad(
+            CurrentPlayerCharacterMeshPath,
+            FStreamableDelegate::CreateUObject(this, &ThisClass::OnAssetLoaded)
+        );
+    }
+
 }
 
 void ASRPGCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -76,6 +127,7 @@ float ASRPGCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 {
     float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
+    /*
     CurrentHP = FMath::Clamp(CurrentHP - FinalDamageAmount, 0.f, MaxHP);
 
     if (CurrentHP < KINDA_SMALL_NUMBER)
@@ -87,10 +139,12 @@ float ASRPGCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
     }
 
     UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s [%.1f / %.1f]"), *GetName(), CurrentHP, MaxHP));
+    */
 
     return FinalDamageAmount;
 }
 
+/*
 void ASRPGCharacter::SetCurrentEXP(float InCurrentEXP)
 {
     CurrentEXP = FMath::Clamp(CurrentEXP + InCurrentEXP, 0.f, MaxEXP);
@@ -100,6 +154,7 @@ void ASRPGCharacter::SetCurrentEXP(float InCurrentEXP)
         ParticleSystemComponent->Activate(true);
     }
 }
+*/
 
 void ASRPGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -112,7 +167,7 @@ void ASRPGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackAction, ETriggerEvent::Started, this, &ThisClass::Attack);
-
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->MenuAction, ETriggerEvent::Started, this, &ThisClass::Menu);
     }
 }
 
@@ -142,6 +197,7 @@ void ASRPGCharacter::Look(const FInputActionValue& InValue)
 
 void ASRPGCharacter::Attack(const FInputActionValue& InValue)
 {
+    
     if (0 == CurrentComboCount)
     {
         BeginCombo();
@@ -251,4 +307,25 @@ void ASRPGCharacter::EndCombo(UAnimMontage* InAnimMontage, bool bInterrupted)
     CurrentComboCount = 0;
     bIsAttackKeyPressed = false;
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+}
+
+void ASRPGCharacter::OnCurrentLevelChanged(int32 InOldCurrentLevel, int32 InNewCurrentLevel)
+{
+    ParticleSystemComponent->Activate(true);
+}
+
+void ASRPGCharacter::OnAssetLoaded()
+{
+    AssetStreamableHandle->ReleaseHandle();
+    TSoftObjectPtr<USkeletalMesh> LoadedAsset(CurrentPlayerCharacterMeshPath);
+    if (true == LoadedAsset.IsValid())
+    {
+        GetMesh()->SetSkeletalMesh(LoadedAsset.Get());
+    }
+
+}
+
+void ASRPGCharacter::Menu(const FInputActionValue& InValue)
+{
+    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("ASRPGCharacter::Menu() has been called.")));
 }

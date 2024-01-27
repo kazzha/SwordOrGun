@@ -10,10 +10,15 @@
 #include "EnhancedInputSubsystems.h"
 #include "Inputs/SInputConfigData.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Controllers/SPlayerController.h"
+#include "Components/SStatComponent.h"
+#include "Engine/EngineTypes.h"
+#include "Engine/DamageEvents.h"
 
 ASTPSCharacter::ASTPSCharacter() : ASCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("SCharacter"));
 
@@ -34,6 +39,23 @@ ASTPSCharacter::ASTPSCharacter() : ASCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 480.f, 0.f);
 
 	WeaponSkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponSkeletalMeshComponent"));
+
+	TimerBetweenFire = 60.f / FirePerMinute;
+}
+
+void ASTPSCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	CurrentFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaSeconds, 35.f);
+	CameraComponent->SetFieldOfView(CurrentFOV);
+
+	if (true == ::IsValid(GetController()))
+	{
+		FRotator ControlRotation = GetController()->GetControlRotation();
+		CurrentAimPitch = ControlRotation.Pitch;
+		CurrentAimYaw = ControlRotation.Yaw;
+	}
 }
 
 void ASTPSCharacter::BeginPlay()
@@ -60,6 +82,34 @@ void ASTPSCharacter::BeginPlay()
 	}
 }
 
+float ASTPSCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+
+	if (false == ::IsValid(GetStatComponent()))
+	{
+		return ActualDamage;
+	}
+
+	if (GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
+	{
+		GetMesh()->SetSimulatePhysics(true);
+	}
+	else
+	{
+		FName PivotBoneName = FName(TEXT("spine_01"));
+		GetMesh()->SetAllBodiesBelowSimulatePhysics(PivotBoneName, true);
+		float BlendWeight = 1.f;
+		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(PivotBoneName, BlendWeight);
+
+		HittedRagdollRestoreTimerDelegate.BindUObject(this, &ThisClass::OnHittedRagdollRestoreTimerElapsed);
+		GetWorld()->GetTimerManager().SetTimer(HittedRagdollRestoreTimer, HittedRagdollRestoreTimerDelegate, 1.f, false);
+	}
+	
+
+	return ActualDamage;
+}
+
 void ASTPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -71,6 +121,11 @@ void ASTPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackAction, ETriggerEvent::Started, this, &ThisClass::Attack);
+		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->IronSightAction, ETriggerEvent::Started, this, &ThisClass::StartIronSight);
+		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->IronSightAction, ETriggerEvent::Completed, this, &ThisClass::EndIronSight);
+		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->TriggerAction, ETriggerEvent::Started, this, &ThisClass::ToggleTrigger);
+		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackAction, ETriggerEvent::Started, this, &ThisClass::StartFire);
+		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackAction, ETriggerEvent::Completed, this, &ThisClass::StopFire);
 	}
 }
 
@@ -100,5 +155,103 @@ void ASTPSCharacter::Look(const FInputActionValue& InValue)
 
 void ASTPSCharacter::Attack(const FInputActionValue& InValue)
 {
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Attack() has been called.")));
+	if(false == bIsTriggerToggle)
+	{
+		Fire();
+	}
 }
+
+void ASTPSCharacter::Fire()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (false == ::IsValid(PlayerController))
+	{
+		return;
+	}
+	FHitResult HitResult;
+
+	FVector CameraStartLocation = CameraComponent->GetComponentLocation();
+	FVector CameraEndLocation = CameraStartLocation + CameraComponent->GetForwardVector() * 5000.f;
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.AddIgnoredComponent((const UPrimitiveComponent*)(CameraComponent));
+	QueryParams.bTraceComplex = true;
+
+	FVector MuzzleLocation = WeaponSkeletalMeshComponent->GetSocketLocation(FName("MussleSocket"));
+	bool bIsCollide = GetWorld()->LineTraceSingleByChannel(HitResult, MuzzleLocation, CameraEndLocation,
+		ECC_Visibility, QueryParams);
+
+	if (true == bIsCollide)
+	{
+		DrawDebugLine(GetWorld(), MuzzleLocation, HitResult.Location, FColor(255, 255, 255, 64), true, 0.1f, 0U, 0.5f);
+
+		ASCharacter* HittedCharacter = Cast<ASCharacter>(HitResult.GetActor());
+		if (true == ::IsValid(HittedCharacter))
+		{
+			FDamageEvent DamageEvent;
+			HittedCharacter->TakeDamage(10.f, DamageEvent, GetController(), this);
+		}
+	}
+	else
+	{
+		DrawDebugLine(GetWorld(), MuzzleLocation, CameraEndLocation, FColor(255, 255, 255, 64), false, 0.1f, 0U, 0.5f);
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (false == ::IsValid(AnimInstance))
+	{
+		return;
+	}
+	if (false == AnimInstance->Montage_IsPlaying(RifleFireAnimMontage))
+	{
+		AnimInstance->Montage_Play(RifleFireAnimMontage);
+	}
+	if (true == ::IsValid(FireShake))
+	{
+		PlayerController->ClientStartCameraShake(FireShake);
+	}
+
+}
+
+void ASTPSCharacter::StartIronSight(const FInputActionValue& InValue)
+{
+	TargetFOV = 45.f;
+}
+
+void ASTPSCharacter::EndIronSight(const FInputActionValue& InValue)
+{
+	TargetFOV = 70.f;
+}
+
+void ASTPSCharacter::ToggleTrigger(const FInputActionValue& InValue)
+{
+	bIsTriggerToggle = !bIsTriggerToggle;
+}
+
+void ASTPSCharacter::StartFire(const FInputActionValue& InValue)
+{
+	if (true == bIsTriggerToggle)
+	{
+		GetWorldTimerManager().SetTimer(BetweenShotsTimer, this, &ThisClass::Fire, TimerBetweenFire, true);
+	}
+}
+
+void ASTPSCharacter::StopFire(const FInputActionValue& InValue)
+{
+	GetWorldTimerManager().ClearTimer(BetweenShotsTimer);
+}
+
+void ASTPSCharacter::OnParticle()
+{
+
+}
+
+void ASTPSCharacter::OnHittedRagdollRestoreTimerElapsed()
+{
+	FName PivotBoneName = FName(TEXT("spine_01"));
+	GetMesh()->SetAllBodiesBelowSimulatePhysics(PivotBoneName, false);
+	float BlendWeight = 0.f;
+	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(PivotBoneName, BlendWeight);
+}
+

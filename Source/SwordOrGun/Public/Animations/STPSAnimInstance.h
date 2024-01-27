@@ -20,6 +20,7 @@ public:
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = USTPSAnimInstance, meta = (AllowPrivateAccess = true))
 	TObjectPtr<class ASTPSCharacter> OwnerCharacter;
@@ -41,5 +42,8 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = USTPSAnimInstance, meta = (AllowPrivateAccess = true))
 	uint8 bIsDead : 1;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = USTPSAnimInstance, meta = (AllowPrivateAccess = true))
+	FRotator ControlRotation;
+
 };

@@ -6,6 +6,13 @@
 #include "Animations/SAnimInstance.h"
 #include "Characters/SRPGCharacter.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SStatComponent.h"
+#include "Components/SWidgetComponent.h"
+#include "UI/SwordUserWidget.h"
+#include "UI/SW_HPBar.h"
+#include "Game/SPlayerState.h"
+#include "Engine/EngineTypes.h"
+#include "Engine/DamageEvents.h"
 
 ASNonPlayerCharacter2::ASNonPlayerCharacter2()
 {
@@ -13,6 +20,13 @@ ASNonPlayerCharacter2::ASNonPlayerCharacter2()
 
     AIControllerClass = ASAIController::StaticClass();
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+    WidgetComponent = CreateDefaultSubobject<USWidgetComponent>(TEXT("WidgetComponent"));
+    WidgetComponent->SetupAttachment(GetRootComponent());
+    WidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
+    WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+    WidgetComponent->SetDrawSize(FVector2D(300.0f, 100.0f));
+    WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 }
 
@@ -43,6 +57,7 @@ float ASNonPlayerCharacter2::TakeDamage(float Damage, FDamageEvent const& Damage
 {
     float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator,DamageCauser);
 
+    /*
     if (CurrentHP < KINDA_SMALL_NUMBER)
     {
         ASRPGCharacter* DamageCauserCharacter = Cast<ASRPGCharacter>(DamageCauser);
@@ -65,7 +80,50 @@ float ASNonPlayerCharacter2::TakeDamage(float Damage, FDamageEvent const& Damage
 
     CurrentHP = FMath::Clamp(CurrentHP - FinalDamageAmount, 0.f, MaxHP);
 
+    */
+
+    if (StatComponent->GetCurrentHP() < KINDA_SMALL_NUMBER)
+    {
+        /*
+        ASRPGCharacter* DamageCauserCharacter = Cast<ASRPGCharacter>(DamageCauser);
+        if (true == ::IsValid(DamageCauserCharacter))
+        {
+            DamageCauserCharacter->SetCurrentEXP(DamageCauserCharacter->GetCurrentEXP() + 5);
+        }
+        */
+
+        if (true == ::IsValid(LastHitBy))
+        {
+            ASCharacter* DamageCauserCharacter = Cast<ASCharacter>(LastHitBy->GetPawn());
+            if (true == ::IsValid(DamageCauserCharacter))
+            {
+                ASPlayerState* PS = Cast<ASPlayerState>(DamageCauserCharacter->GetPlayerState());
+                if (true == ::IsValid(PS))
+                {
+                    PS->SetCurrentEXP(PS->GetCurrentEXP() + 20.f);
+                }
+            }
+        }
+
+        ASAIController* AIController = Cast<ASAIController>(GetController());
+        if (true == ::IsValid(AIController))
+        {
+            AIController->EndAI();
+        }
+    }
+
     return FinalDamageAmount;
+}
+
+void ASNonPlayerCharacter2::SetWidget(USwordUserWidget* InSwordUserWidget)
+{
+    USW_HPBar* HPBarWidget = Cast<USW_HPBar>(InSwordUserWidget);
+    if (true == ::IsValid(HPBarWidget))
+    {
+        HPBarWidget->SetMaxHP(StatComponent->GetMaxHP());
+        HPBarWidget->InitializeHPBarWidget(StatComponent);
+        StatComponent->OnCurrentHPChangeDelegate.AddDynamic(HPBarWidget, &USW_HPBar::OnCurrentHPChange);
+    }
 }
 
 void ASNonPlayerCharacter2::Attack()
@@ -102,6 +160,19 @@ void ASNonPlayerCharacter2::Attack()
         }
     }
 
+    if (true == bResult)
+    {
+        if (true == ::IsValid(HitResult.GetActor()))
+        {
+            ASCharacter* PlayerCharacter = Cast<ASCharacter>(HitResult.GetActor());
+            if (true == ::IsValid(PlayerCharacter))
+            {
+                PlayerCharacter->TakeDamage(10.f, FDamageEvent(), GetController(), this);
+            }
+        }
+    }
+
+
 #pragma region CollisionDebugDrawing
     FVector TraceVec = GetActorForwardVector() * AttackRange;
     FVector Center = GetActorLocation() + TraceVec * 0.5f;
@@ -121,6 +192,7 @@ void ASNonPlayerCharacter2::Attack()
         DebugLifeTime
     );
 #pragma endregion
+    
 }
 
 void ASNonPlayerCharacter2::OnAttackAnimMontageEnded(UAnimMontage* Montage, bool bIsInterrupt)

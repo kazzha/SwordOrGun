@@ -30,6 +30,20 @@ void USStatComponent::BeginPlay()
 			SetCurrentHP(MaxHP);
 		}
 	}
+
+	ASCharacter* OwnerPlayerCharacter = Cast<ASCharacter>(GetOwner());
+	if (true == ::IsValid(OwnerPlayerCharacter))
+	{
+		ASPlayerState* PS = Cast<ASPlayerState>(OwnerPlayerCharacter->GetPlayerState());
+		if (true == ::IsValid(PS))
+		{
+			if (false == PS->OnCurrentLevelChangedDelegate.IsAlreadyBound(this, &ThisClass::OnCurrentLevelChanged))
+			{
+				PS->OnCurrentLevelChangedDelegate.AddDynamic(this, &ThisClass::OnCurrentLevelChanged);
+			}
+		}
+	}
+
 }
 
 void USStatComponent::SetMaxHP(float InMaxHP)
