@@ -15,6 +15,10 @@
 #include "Components/SStatComponent.h"
 #include "Engine/EngineTypes.h"
 #include "Engine/DamageEvents.h"
+#include "WorldStatics/SLandMine.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
+
 
 ASTPSCharacter::ASTPSCharacter() : ASCharacter()
 {
@@ -55,6 +59,53 @@ void ASTPSCharacter::Tick(float DeltaSeconds)
 		FRotator ControlRotation = GetController()->GetControlRotation();
 		CurrentAimPitch = ControlRotation.Pitch;
 		CurrentAimYaw = ControlRotation.Yaw;
+	}
+
+	if (true == bIsNowRagdollBlending)
+	{
+		CurrentRagDollBlendWeight = FMath::FInterpTo(CurrentRagDollBlendWeight, TargetRagDollBlendWeight,
+			DeltaSeconds, 10.f);
+		FName PivotBoneName = FName(TEXT("spine_01"));
+		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(PivotBoneName, CurrentRagDollBlendWeight);
+
+		if (CurrentRagDollBlendWeight - TargetRagDollBlendWeight < KINDA_SMALL_NUMBER)
+		{
+			GetMesh()->SetAllBodiesBelowSimulatePhysics(PivotBoneName, false);
+			bIsNowRagdollBlending = false;
+		}
+
+		if (true == ::IsValid(GetStatComponent()) && GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
+		{
+			GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName(TEXT("root")), 1.f);
+			GetMesh()->SetSimulatePhysics(true);
+			bIsNowRagdollBlending = false;
+		}
+	}
+
+	if (true == ::IsValid(GetController()))
+	{
+		PreviousAimPitch = CurrentAimPitch;
+		PreviousAimYaw = CurrentAimYaw;
+
+		FRotator ControlRotation = GetController()->GetControlRotation();
+		CurrentAimPitch = ControlRotation.Pitch;
+		CurrentAimYaw = ControlRotation.Yaw;
+
+		if (PreviousAimPitch != CurrentAimPitch || PreviousAimYaw != CurrentAimYaw)
+		{
+			if (false == HasAuthority())
+			{
+				UpdateAimValue_Server(CurrentAimPitch, CurrentAimYaw);
+			}
+		}
+	}
+
+	if (PreviousForwardInputValue != ForwardInputValue || PreviousRightInputValue != RightInputValue)
+	{
+		if (false == HasAuthority())
+		{
+			UpdateInputValue_Server(ForwardInputValue, RightInputValue);
+		}
 	}
 }
 
@@ -105,9 +156,19 @@ float ASTPSCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 		HittedRagdollRestoreTimerDelegate.BindUObject(this, &ThisClass::OnHittedRagdollRestoreTimerElapsed);
 		GetWorld()->GetTimerManager().SetTimer(HittedRagdollRestoreTimer, HittedRagdollRestoreTimerDelegate, 1.f, false);
 	}
-	
+
 
 	return ActualDamage;
+}
+
+void ASTPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, ForwardInputValue);
+	DOREPLIFETIME(ThisClass, RightInputValue);
+	DOREPLIFETIME(ThisClass, CurrentAimPitch);
+	DOREPLIFETIME(ThisClass, CurrentAimYaw);
 }
 
 void ASTPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -126,6 +187,7 @@ void ASTPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->TriggerAction, ETriggerEvent::Started, this, &ThisClass::ToggleTrigger);
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackAction, ETriggerEvent::Started, this, &ThisClass::StartFire);
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackAction, ETriggerEvent::Completed, this, &ThisClass::StopFire);
+		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->LandMineAction, ETriggerEvent::Started, this, &ThisClass::SpawnLandMine);
 	}
 }
 
@@ -242,16 +304,61 @@ void ASTPSCharacter::StopFire(const FInputActionValue& InValue)
 	GetWorldTimerManager().ClearTimer(BetweenShotsTimer);
 }
 
-void ASTPSCharacter::OnParticle()
-{
-
-}
-
 void ASTPSCharacter::OnHittedRagdollRestoreTimerElapsed()
 {
 	FName PivotBoneName = FName(TEXT("spine_01"));
+	/*
 	GetMesh()->SetAllBodiesBelowSimulatePhysics(PivotBoneName, false);
 	float BlendWeight = 0.f;
 	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(PivotBoneName, BlendWeight);
+	*/
+
+	TargetRagDollBlendWeight = 0.f;
+	CurrentRagDollBlendWeight = 1.f;
+	bIsNowRagdollBlending = true;
+}
+
+void ASTPSCharacter::UpdateInputValue_Server_Implementation(const float& InForwardInputValue, const float& InRightInputValue)
+{
+	ForwardInputValue = InForwardInputValue;
+	RightInputValue = InRightInputValue;
+}
+
+void ASTPSCharacter::UpdateAimValue_Server_Implementation(const float& InAimPitchValue, const float& InAimYawValue)
+{
+	CurrentAimPitch = InAimPitchValue;
+	CurrentAimYaw = InAimYawValue;
+}
+
+void ASTPSCharacter::SpawnLandMine(const FInputActionValue& InValue)
+{
+	/*
+	if (true == ::IsValid(LandMineClass))
+	{
+		FVector SpawnedLocation = (GetActorLocation() + GetActorForwardVector() * 300.f) - FVector(0.f, 0.f, 90.f);
+		ASLandMine* SpawnedLandMine = GetWorld()->SpawnActor<ASLandMine>(LandMineClass, SpawnedLocation, FRotator::ZeroRotator);
+		SpawnedLandMine->SetOwner(GetController());
+
+	}
+	*/
+
+	SpawnLandMine_Server();
+}
+
+
+bool ASTPSCharacter::SpawnLandMine_Server_Validate()
+{
+	return true;
+}
+
+void ASTPSCharacter::SpawnLandMine_Server_Implementation()
+{
+	if (true == ::IsValid(LandMineClass))
+	{
+		FVector SpawnedLocation = (GetActorLocation() + GetActorForwardVector() * 300.f) - FVector(0.f, 0.f, 90.f);
+		ASLandMine* SpawnedLandMine = GetWorld()->SpawnActor<ASLandMine>(LandMineClass, SpawnedLocation, FRotator::ZeroRotator);
+		SpawnedLandMine->SetOwner(GetController());
+
+	}
 }
 
