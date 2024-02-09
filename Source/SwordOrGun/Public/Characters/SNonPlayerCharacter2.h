@@ -26,6 +26,8 @@ public:
 
 	virtual void SetWidget(class USwordUserWidget* InSwordUserWidget) override;
 
+	void DropItems();
+
 private:
 	void Attack();
 
@@ -42,4 +44,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASNonPlayerCharacter2", Meta = (AllowPrivateAccess))
 	TObjectPtr<class USWidgetComponent> WidgetComponent;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Drop")
+	TSubclassOf<class ASItem> ItemToDrop;
 };

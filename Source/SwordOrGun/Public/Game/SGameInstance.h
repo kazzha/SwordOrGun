@@ -41,8 +41,13 @@ public:
 
 	FStreamableManager StreamableManager = FStreamableManager();
 
+	int32 GetDeathCount() { return CheckDeathCount; }
+
+	void SetDeathCount(int32 input) { CheckDeathCount = input; }
+
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "USGameInstance", Meta = (AllowPrivateAccess))
 	class UDataTable* CharacterStatDataTable;
 
+	int32 CheckDeathCount = 0;
 };

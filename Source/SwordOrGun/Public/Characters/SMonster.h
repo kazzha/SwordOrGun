@@ -11,6 +11,8 @@ UCLASS()
 class SWORDORGUN_API ASMonster : public ASCharacter
 {
 	GENERATED_BODY()
+
+	friend class UBTTask_Attack;
 	
 public:
 	ASMonster();

@@ -3,6 +3,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SStatComponent.h"
 
+
 USAnimInstance::USAnimInstance()
 {
 }
@@ -84,4 +85,5 @@ void USAnimInstance::AnimNotify_CheckCanNextCombo()
 void USAnimInstance::OnCharacterDeath()
 {
     bIsDead = true;
+    
 }

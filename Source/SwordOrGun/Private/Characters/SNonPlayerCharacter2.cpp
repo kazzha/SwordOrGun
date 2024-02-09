@@ -13,6 +13,9 @@
 #include "Game/SPlayerState.h"
 #include "Engine/EngineTypes.h"
 #include "Engine/DamageEvents.h"
+#include "WorldStatics/SItem.h"
+#include "Game/SGameInstance.h"
+#include "Kismet/GameplayStatics.h"
 
 ASNonPlayerCharacter2::ASNonPlayerCharacter2()
 {
@@ -25,8 +28,10 @@ ASNonPlayerCharacter2::ASNonPlayerCharacter2()
     WidgetComponent->SetupAttachment(GetRootComponent());
     WidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
     WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
-    WidgetComponent->SetDrawSize(FVector2D(300.0f, 100.0f));
+    WidgetComponent->SetDrawSize(FVector2D(200.0f, 50.0f));
     WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    ItemToDrop = ASItem::StaticClass();
 
 }
 
@@ -101,6 +106,10 @@ float ASNonPlayerCharacter2::TakeDamage(float Damage, FDamageEvent const& Damage
                 if (true == ::IsValid(PS))
                 {
                     PS->SetCurrentEXP(PS->GetCurrentEXP() + 20.f);
+                    DropItems();
+                    USGameInstance* GameInstance = Cast<USGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+                    GameInstance->SetDeathCount(GameInstance->GetDeathCount()+1);
+                    
                 }
             }
         }
@@ -124,6 +133,19 @@ void ASNonPlayerCharacter2::SetWidget(USwordUserWidget* InSwordUserWidget)
         HPBarWidget->InitializeHPBarWidget(StatComponent);
         StatComponent->OnCurrentHPChangeDelegate.AddDynamic(HPBarWidget, &USW_HPBar::OnCurrentHPChange);
     }
+}
+
+void ASNonPlayerCharacter2::DropItems()
+{
+    if (ItemToDrop)
+    {
+        FVector SpawnLocation = GetActorLocation();
+        SpawnLocation.Z = GetActorLocation().Z - 80.0f;
+
+        ASItem* SpawnedItem = GetWorld()->SpawnActor<ASItem>(ItemToDrop, SpawnLocation, FRotator::ZeroRotator);
+
+    }
+
 }
 
 void ASNonPlayerCharacter2::Attack()

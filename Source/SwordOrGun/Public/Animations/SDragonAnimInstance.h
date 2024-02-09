@@ -5,6 +5,7 @@
 #include "Animation/AnimInstance.h"
 #include "SDragonAnimInstance.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCheckDelegate);
 /**
  * 
  */
@@ -13,7 +14,7 @@ class SWORDORGUN_API USDragonAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 
-    friend class SMonster;
+    friend class ASMonster;
 
 public:
     USDragonAnimInstance();
@@ -22,8 +23,12 @@ public:
 
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+
 private:
     void PlaythrowAnimMontage();
+
+    UFUNCTION()
+    void AnimNotify_CheckHit();
 
     UFUNCTION()
     void OnMonsterDeath();
@@ -44,7 +49,9 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USDragonAnimInstance", Meta = (AllowPrivateAccess))
     TObjectPtr<class UAnimMontage> ThrowAnimMontage;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USDragonAnimInstance", Meta = (AllowPrivateAccess))
     uint8 bIsDead : 1;
 
+
+    FOnCheckDelegate OnCheckDelegate;
 };

@@ -67,6 +67,14 @@ void USDragonAnimInstance::PlaythrowAnimMontage()
     }
 }
 
+void USDragonAnimInstance::AnimNotify_CheckHit()
+{
+    if (true == OnCheckDelegate.IsBound())
+    {
+        OnCheckDelegate.Broadcast();
+    }
+}
+
 void USDragonAnimInstance::OnMonsterDeath()
 {
     bIsDead = true;
