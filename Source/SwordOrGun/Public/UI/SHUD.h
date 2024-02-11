@@ -21,6 +21,9 @@ protected:
 	UFUNCTION()
 	virtual void UpdateLevelText(int32 InOldLevel, int32 InNewLevel);
 
+	UFUNCTION()
+	virtual void UpdateDeathCountText(int32 InNewCount);
+
 protected:
 	TWeakObjectPtr<class USStatComponent> StatComponent;
 
@@ -37,5 +40,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USHUD", Meta = (BindWidget))
 	TObjectPtr<class USW_EXPBar> EXPBar;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USHUD", Meta = (BindWidget))
+	TObjectPtr<class UTextBlock> DeathCount;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USHUD", Meta = (BindWidget))
+	TObjectPtr<class UTextBlock> DeathText;
 
 };

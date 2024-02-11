@@ -7,6 +7,8 @@
 #include "SGameInstance.generated.h"
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentDeathCountDelegate, int32, deathCount);
+
 USTRUCT(BlueprintType)
 struct FSStatTableRow : public FTableRowBase
 {
@@ -43,7 +45,13 @@ public:
 
 	int32 GetDeathCount() { return CheckDeathCount; }
 
-	void SetDeathCount(int32 input) { CheckDeathCount = input; }
+	FOnCurrentDeathCountDelegate OnCurrentDeathCountDelegate;
+
+	void SetDeathCount(int32 input) { CheckDeathCount = input; OnCurrentDeathCountDelegate.Broadcast(CheckDeathCount); }
+
+
+public:
+	
 
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "USGameInstance", Meta = (AllowPrivateAccess))

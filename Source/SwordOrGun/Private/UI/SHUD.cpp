@@ -24,22 +24,28 @@ void USHUD::BindStatComponent(USStatComponent* InStatComponent)
 			float MaxHP = GameInstance->GetCharacterStatDataTableRow(1)->MaxHP;
 			HPBar->SetMaxHP(MaxHP);
 			HPBar->InitializeHPBarWidget(StatComponent.Get());
+			
 		}
 	}
 }
 
 void USHUD::BindPlayerState(ASPlayerState* InPlayerState)
 {
+	USGameInstance* GameInstance = Cast<USGameInstance>(GetWorld()->GetGameInstance());
+	{	
+		GameInstance->OnCurrentDeathCountDelegate.AddDynamic(this, &ThisClass::UpdateDeathCountText);
+	}
 	if (true == ::IsValid(InPlayerState))
 	{
 		PlayerState = InPlayerState;
 		PlayerState->OnCurrentEXPChangedDelegate.AddDynamic(EXPBar, &USW_EXPBar::OnCurrentEXPChange);
 		PlayerState->OnCurrentLevelChangedDelegate.AddDynamic(this, &ThisClass::UpdateLevelText);
-
+		
 		PlayerNameText->SetText(FText::FromString(PlayerState->GetPlayerName()));
 		EXPBar->SetMaxEXP(PlayerState->GetMaxEXP());
 		EXPBar->InitializeEXPBarWidget(PlayerState.Get());
 		UpdateLevelText(0, PlayerState->GetCurrentLevel());
+		UpdateDeathCountText(GameInstance->GetDeathCount());
 	}
 }
 
@@ -49,3 +55,20 @@ void USHUD::UpdateLevelText(int32 InOldLevel, int32 InNewLevel)
 
 	LevelText->SetText(FText::FromString(LevelString));
 }
+
+void USHUD::UpdateDeathCountText(int32 InNewCount)
+{
+	
+	FString DeathString = FString::Printf(TEXT("%d"), InNewCount);
+
+	DeathCount->SetText(FText::FromString(DeathString));
+
+	if (InNewCount == 7)
+	{
+	   DeathCount->SetVisibility(ESlateVisibility::Hidden);
+       DeathText->SetText(FText::FromString(TEXT("보스를 처지하세요!")));
+	}
+
+}
+
+

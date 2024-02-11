@@ -27,6 +27,8 @@ public:
 private:
     void PlaythrowAnimMontage();
 
+    void PlayBeginPlayAnimMontage();
+
     UFUNCTION()
     void AnimNotify_CheckHit();
 
@@ -48,6 +50,9 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USDragonAnimInstance", Meta = (AllowPrivateAccess))
     TObjectPtr<class UAnimMontage> ThrowAnimMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USDragonAnimInstance", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UAnimMontage> BeginPlayAnimMontage;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USDragonAnimInstance", Meta = (AllowPrivateAccess))
     uint8 bIsDead : 1;

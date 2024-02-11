@@ -69,6 +69,12 @@ private:
 	UFUNCTION(Server, Unreliable)
 	void UpdateAimValue_Server(const float& InAimPitchValue, const float& InAimYawValue);
 
+	UFUNCTION(Server, Unreliable)
+	void PlayAttackMontage_Server();
+
+	UFUNCTION(Server, Unreliable)
+	void PlayAttackMontage_NetMulticast();
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess))
 	TObjectPtr<USkeletalMeshComponent> WeaponSkeletalMeshComponent;

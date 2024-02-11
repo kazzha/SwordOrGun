@@ -60,5 +60,8 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess))
     TObjectPtr<class USStatComponent> StatComponent;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess))
+    TObjectPtr<class UAIPerceptionStimuliSourceComponent> AIStimuliSource;
+
 
 };

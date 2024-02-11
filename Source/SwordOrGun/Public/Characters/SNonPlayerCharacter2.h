@@ -26,10 +26,14 @@ public:
 
 	virtual void SetWidget(class USwordUserWidget* InSwordUserWidget) override;
 
-	void DropItems();
+
 
 private:
 	void Attack();
+	
+	void DropItems();
+
+	void SpawnDragon();
 
 	UFUNCTION()
 	void OnAttackAnimMontageEnded(class UAnimMontage* Montage, bool bIsInterrupt);
@@ -44,6 +48,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASNonPlayerCharacter2", Meta = (AllowPrivateAccess))
 	TObjectPtr<class USWidgetComponent> WidgetComponent;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Drop")
+	UPROPERTY(EditDefaultsOnly, Category = "Spawn")
 	TSubclassOf<class ASItem> ItemToDrop;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Spawn")
+	TSubclassOf<class ASMonster> BossMonster;
 };

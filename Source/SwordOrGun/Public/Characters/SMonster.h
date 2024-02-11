@@ -39,6 +39,6 @@ private:
 
 	bool bIsAttacking = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASNonPlayerCharacter2", Meta = (AllowPrivateAccess))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SMonster", Meta = (AllowPrivateAccess))
 	TObjectPtr<class USWidgetComponent> WidgetComponent;
 };

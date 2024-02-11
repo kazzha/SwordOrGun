@@ -111,4 +111,7 @@ private:
     FSoftObjectPath CurrentPlayerCharacterMeshPath = FSoftObjectPath();
 
     TSharedPtr<struct FStreamableHandle> AssetStreamableHandle = nullptr;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess = true))
+    TSubclassOf<class UCameraShakeBase> FireShake;
 };
