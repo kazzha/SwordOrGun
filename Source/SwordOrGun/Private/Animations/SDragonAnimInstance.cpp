@@ -67,6 +67,28 @@ void USDragonAnimInstance::PlaythrowAnimMontage()
     }
 }
 
+void USDragonAnimInstance::PlayFireAnimMontage()
+{
+    if (true == ::IsValid(FireAnimMontage))
+    {
+        if (false == Montage_IsPlaying(FireAnimMontage))
+        {
+            Montage_Play(FireAnimMontage);
+        }
+    }
+}
+
+void USDragonAnimInstance::PlayBeginPlayAnimMontage()
+{
+    if (true == ::IsValid(BeginPlayAnimMontage))
+    {
+        if (false == Montage_IsPlaying(BeginPlayAnimMontage))
+        {
+            Montage_Play(BeginPlayAnimMontage);
+        }
+    }
+}
+
 void USDragonAnimInstance::AnimNotify_CheckHit()
 {
     if (true == OnCheckDelegate.IsBound())

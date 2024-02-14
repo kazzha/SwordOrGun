@@ -113,5 +113,5 @@ private:
     TSharedPtr<struct FStreamableHandle> AssetStreamableHandle = nullptr;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess = true))
-    TSubclassOf<class UCameraShakeBase> FireShake;
+    TSubclassOf<class UCameraShakeBase> GroundShake;
 };

@@ -6,17 +6,52 @@
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Characters/SCharacter.h"
 
 const float ASAIController::PatrolRadius(500.f);
 const FName ASAIController::StartPatrolPositionKey(TEXT("StartPatrolPosition"));
 const FName ASAIController::EndPatrolPositionKey(TEXT("EndPatrolPosition"));
 const FName ASAIController::TargetActorKey(TEXT("TargetActor"));
+const FName ASAIController::CanSeePlayerKey(TEXT("CanSeePlayer"));
+
+const float ASAIController::AI_SIGHT_RADIUS = 2500.f;
+const float ASAIController::AI_SIGHT_AGE = 5.f;
+const float ASAIController::AI_LOSE_SIGHT_RADIUS = AI_SIGHT_RADIUS + 100.f;
+const float ASAIController::AI_FIELD_OF_VIEW = 90.f;
 
 ASAIController::ASAIController()
 {
     Blackboard = CreateDefaultSubobject<UBlackboardComponent>(TEXT("Blackboard"));
     BrainComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BrainComponent"));
+
+    SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
+
+    if(SightConfig)
+    {
+        SetPerceptionComponent(*CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AI Perception")));
+
+        SightConfig->SightRadius = AI_SIGHT_RADIUS;
+        SightConfig->LoseSightRadius = AI_LOSE_SIGHT_RADIUS;
+        SightConfig->PeripheralVisionAngleDegrees = AI_FIELD_OF_VIEW;
+        SightConfig->SetMaxAge(AI_SIGHT_AGE);
+
+        SightConfig->AutoSuccessRangeFromLastSeenLocation = 520.0f;
+
+        SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+        SightConfig->DetectionByAffiliation.bDetectNeutrals = false;
+        SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
+
+        GetPerceptionComponent()->SetDominantSense(*SightConfig->GetSenseImplementation());
+        GetPerceptionComponent()->ConfigureSense(*SightConfig);
+
+        GetAIPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &ASAIController::TargetPerceptionUpdated);
+    }
+    
 }
+
 
 void ASAIController::BeginAI(APawn* InPawn)
 {
@@ -75,5 +110,15 @@ void ASAIController::OnPatrolTimerElapsed()
                 UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, NextLocation.Location);
             }
         }
+    }
+}
+
+void ASAIController::TargetPerceptionUpdated(AActor* UpdatedActor, FAIStimulus Stimulus)
+{
+    if (auto player = Cast<ASCharacter>(UpdatedActor))
+    {
+        UBlackboardComponent* BlackboardComponent = Cast<UBlackboardComponent>(Blackboard);
+        BlackboardComponent->SetValueAsBool(CanSeePlayerKey, Stimulus.WasSuccessfullySensed());
+        BlackboardComponent->SetValueAsObject(ASAIController::TargetActorKey, player);
     }
 }

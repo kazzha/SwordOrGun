@@ -12,6 +12,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Animations/SDragonAnimInstance.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
 
 ASMonster::ASMonster()
 {
@@ -37,9 +39,12 @@ ASMonster::ASMonster()
     WidgetComponent->SetDrawSize(FVector2D(250.0f, 50.0f));
     WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-
-    
-
+    AIStimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
+    if (AIStimuliSource)
+    {
+        AIStimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
+        AIStimuliSource->RegisterWithPerceptionSystem();
+    }
 }
 
 void ASMonster::BeginPlay()
@@ -62,12 +67,13 @@ void ASMonster::BeginPlay()
         AnimInstance->OnMontageEnded.IsAlreadyBound(this, &ThisClass::OnAttackAnimMontageEnded))
     {
         AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnAttackAnimMontageEnded);
+        AnimInstance->PlayBeginPlayAnimMontage();
     }
 }
 
 float ASMonster::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-    float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+    float FinalDamageAmount = Super::TakeDamage(Damage-40, DamageEvent, EventInstigator, DamageCauser);
 
     if (StatComponent->GetCurrentHP() < KINDA_SMALL_NUMBER)
     {
@@ -113,7 +119,7 @@ void ASMonster::Attack()
     bool bResult = GetWorld()->SweepSingleByChannel(
         HitResult,
         GetActorLocation(),
-        GetActorLocation() + AttackRange * GetActorForwardVector(),
+        GetActorLocation() + AttackRange * GetActorForwardVector() - 2 * GetActorLocation().Z,
         FQuat::Identity,
         ECollisionChannel::ECC_EngineTraceChannel2,
         FCollisionShape::MakeSphere(AttackRadius),
@@ -131,7 +137,8 @@ void ASMonster::Attack()
     USDragonAnimInstance* AnimInstance = Cast<USDragonAnimInstance>(GetMesh()->GetAnimInstance());
     if (true == ::IsValid(AnimInstance))
     {
-        AnimInstance->PlaythrowAnimMontage();
+        FMath::RandRange(0, 1) == 0 ? AnimInstance->PlaythrowAnimMontage() : AnimInstance->PlayFireAnimMontage();
+        
         bIsAttacking = true;
         if (false == AnimInstance->OnMontageEnded.IsAlreadyBound(this, &ThisClass::OnAttackAnimMontageEnded))
         {
@@ -146,7 +153,7 @@ void ASMonster::Attack()
             ASCharacter* PlayerCharacter = Cast<ASCharacter>(HitResult.GetActor());
             if (true == ::IsValid(PlayerCharacter))
             {
-                PlayerCharacter->TakeDamage(10.f, FDamageEvent(), GetController(), this);
+                PlayerCharacter->TakeDamage(30.f, FDamageEvent(), GetController(), this);
             }
         }
     }

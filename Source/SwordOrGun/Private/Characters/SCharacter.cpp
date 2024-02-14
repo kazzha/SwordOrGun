@@ -6,6 +6,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/SStatComponent.h"
 
+
 ASCharacter::ASCharacter()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -34,6 +35,8 @@ ASCharacter::ASCharacter()
     GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
     StatComponent = CreateDefaultSubobject<USStatComponent>(TEXT("StatComponent"));
+
+    
 }
 
 void ASCharacter::BeginPlay()
@@ -49,6 +52,8 @@ void ASCharacter::BeginPlay()
     {
         StatComponent->OnOutOfCurrentHPDelegate.AddDynamic(this, &ThisClass::OnCharacterDeath);
     }
+
+   
 }
 
 float ASCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

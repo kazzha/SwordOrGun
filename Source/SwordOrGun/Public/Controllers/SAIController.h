@@ -32,8 +32,6 @@ private:
     UFUNCTION()
     void TargetPerceptionUpdated(AActor* UpdatedActor, FAIStimulus Stimulus);
 
-    ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
-
 
 
 public:

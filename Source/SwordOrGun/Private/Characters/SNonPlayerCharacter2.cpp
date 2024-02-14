@@ -16,6 +16,7 @@
 #include "WorldStatics/SItem.h"
 #include "Game/SGameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "Characters/SMonster.h"
 
 ASNonPlayerCharacter2::ASNonPlayerCharacter2()
 {
@@ -109,7 +110,12 @@ float ASNonPlayerCharacter2::TakeDamage(float Damage, FDamageEvent const& Damage
                     DropItems();
                     USGameInstance* GameInstance = Cast<USGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
                     GameInstance->SetDeathCount(GameInstance->GetDeathCount()+1);
-                    
+
+                    if (GameInstance->GetDeathCount() == 7)
+                    {
+                        SpawnDragon();
+                    }
+
                 }
             }
         }
@@ -146,6 +152,18 @@ void ASNonPlayerCharacter2::DropItems()
 
     }
 
+}
+
+void ASNonPlayerCharacter2::SpawnDragon()
+{
+    if (BossMonster)
+    {
+        FVector SpawnLocation = FVector(-4998.0f, -880.0f, 300.0f);
+        FRotator SPawnRotator = FRotator(0.0f, 90.0f, 0.0f);
+
+        ASMonster* SpawnedMonster = GetWorld()->SpawnActor<ASMonster>(BossMonster, SpawnLocation, SPawnRotator);
+        
+    }
 }
 
 void ASNonPlayerCharacter2::Attack()

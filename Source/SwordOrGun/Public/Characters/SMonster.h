@@ -33,7 +33,7 @@ private:
 	void OnAttackAnimMontageEnded(class UAnimMontage* Montage, bool bIsInterrupt);
 
 private:
-	float AttackRange = 200.f;
+	float AttackRange = 400.f;
 
 	float AttackRadius = 50.f;
 
@@ -41,4 +41,8 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SMonster", Meta = (AllowPrivateAccess))
 	TObjectPtr<class USWidgetComponent> WidgetComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SMonster", Meta = (AllowPrivateAccess))
+	TObjectPtr<class UAIPerceptionStimuliSourceComponent> AIStimuliSource;
+
 };

@@ -27,6 +27,8 @@ void USHUD::BindStatComponent(USStatComponent* InStatComponent)
 			
 		}
 	}
+
+	BossText->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void USHUD::BindPlayerState(ASPlayerState* InPlayerState)
@@ -65,8 +67,9 @@ void USHUD::UpdateDeathCountText(int32 InNewCount)
 
 	if (InNewCount == 7)
 	{
-	   DeathCount->SetVisibility(ESlateVisibility::Hidden);
-       DeathText->SetText(FText::FromString(TEXT("보스를 처지하세요!")));
+		DeathCount->SetVisibility(ESlateVisibility::Collapsed);
+		DeathText->SetVisibility(ESlateVisibility::Collapsed);
+		BossText->SetVisibility(ESlateVisibility::Visible);
 	}
 
 }
