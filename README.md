@@ -16,7 +16,7 @@
 
 >Youtube
 
-[![이미지](http://img.youtube.com/vi/JAWqFXuF3xc/0.jpg)](https://www.youtube.com/watch?v=JAWqFXuF3xc)
+[![이미지](http://img.youtube.com/vi/06UD-kbT6r4/0.jpg)](https://youtu.be/06UD-kbT6r4)
 
 ## 3. 게임 플레이 전개도 
 
