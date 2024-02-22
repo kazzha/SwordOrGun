@@ -27,8 +27,8 @@ void UBTService_DetectCharacterbyBoss::TickNode(UBehaviorTreeComponent& OwnerCom
 			if (true == ::IsValid(World))
 			{
 				FVector CenterPosition = Monster->GetActorLocation();
-				float DetectRadius = 400.f;
-				float DetectHalfHeight = 200.f;
+				float DetectRadius = 500.f;
+				float DetectHalfHeight = 400.f;
 				FVector TraceVec = Monster->GetActorForwardVector() * DetectHalfHeight;
 				FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
 				TArray<FOverlapResult> OverlapResults;
@@ -52,18 +52,19 @@ void UBTService_DetectCharacterbyBoss::TickNode(UBehaviorTreeComponent& OwnerCom
 							if (true == PC->GetController()->IsPlayerController())
 							{
 								OwnerComp.GetBlackboardComponent()->SetValueAsObject(ASAIController::TargetActorKey, PC);
+								/*
 								UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Detected!")));
 								DrawDebugCapsule(World, CenterPosition, DetectHalfHeight, DetectRadius, CapsuleRot, FColor::Red, false, 0.5f);
 								DrawDebugPoint(World, PC->GetActorLocation(), 10.f, FColor::Red, false, 0.5f);
 								DrawDebugLine(World, Monster->GetActorLocation(), PC->GetActorLocation(), FColor::Red, false, 0.5f, 0u, 3.f);
-
+								*/
 								return;
 							}
 
 							else
 							{
 								OwnerComp.GetBlackboardComponent()->SetValueAsObject(ASAIController::TargetActorKey, nullptr);
-								DrawDebugCapsule(World, CenterPosition, DetectHalfHeight, DetectRadius, CapsuleRot, FColor::Green, false, 0.5f);
+								//DrawDebugCapsule(World, CenterPosition, DetectHalfHeight, DetectRadius, CapsuleRot, FColor::Green, false, 0.5f);
 							}
 						}
 					}
@@ -74,9 +75,10 @@ void UBTService_DetectCharacterbyBoss::TickNode(UBehaviorTreeComponent& OwnerCom
 				{
 					OwnerComp.GetBlackboardComponent()->SetValueAsObject(ASAIController::TargetActorKey, nullptr);
 				}
-
+				/*
 				UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("No target detected...")));
 				DrawDebugSphere(World, CenterPosition, DetectRadius, 16, FColor::Green, false, 0.5f);
+				*/
 			}
 		}
 	}

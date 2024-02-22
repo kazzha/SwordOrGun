@@ -7,6 +7,7 @@
 #include "GameFramework/FloatingPawnMovement.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/Controller.h"
+#include "Controllers/SPlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -19,6 +20,8 @@
 #include "SPlayerCharacterSettings.h"
 #include "Game/SGameInstance.h"
 #include "Engine/StreamableManager.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 
 ASRPGCharacter::ASRPGCharacter() 
     : bIsAttacking(false)
@@ -127,6 +130,7 @@ float ASRPGCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 {
     float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
+    UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
     /*
     CurrentHP = FMath::Clamp(CurrentHP - FinalDamageAmount, 0.f, MaxHP);
 
@@ -242,6 +246,7 @@ void ASRPGCharacter::CheckHit()
         }
     }
 
+    /*
 #pragma region CollisionDebugDrawing
     FVector TraceVec = GetActorForwardVector() * AttackRange;
     FVector Center = GetActorLocation() + TraceVec * 0.5f;
@@ -261,7 +266,7 @@ void ASRPGCharacter::CheckHit()
         DebugLifeTime
     );
 #pragma endregion
-
+*/
 }
 
 void ASRPGCharacter::BeginCombo()
@@ -276,6 +281,13 @@ void ASRPGCharacter::BeginCombo()
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 
     AnimInstance->PlayAttackAnimMontage();
+
+    if (true == ::IsValid(GroundShake))
+    {
+        APlayerController* PlayerController = Cast<APlayerController>(GetController());
+        PlayerController->ClientStartCameraShake(GroundShake);
+    }
+
 
     FOnMontageEnded OnMontageEndedDelegate;
     OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);

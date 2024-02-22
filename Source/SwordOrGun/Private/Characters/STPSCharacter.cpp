@@ -18,6 +18,7 @@
 #include "WorldStatics/SLandMine.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/Engine.h"
+#include "Kismet/GameplayStatics.h"
 
 
 ASTPSCharacter::ASTPSCharacter() : ASCharacter()
@@ -268,10 +269,15 @@ void ASTPSCharacter::Fire()
 	if (false == AnimInstance->Montage_IsPlaying(RifleFireAnimMontage))
 	{
 		AnimInstance->Montage_Play(RifleFireAnimMontage);
+		PlayAttackMontage_Server();
 	}
 	if (true == ::IsValid(FireShake))
 	{
-		PlayerController->ClientStartCameraShake(FireShake);
+		if (GetOwner() == UGameplayStatics::GetPlayerController(this, 0))
+		{
+			// 다른 클라의 사격은 내 PC화면이 흔들리지 않게
+			PlayerController->ClientStartCameraShake(FireShake);
+		}
 	}
 
 }
@@ -316,6 +322,27 @@ void ASTPSCharacter::OnHittedRagdollRestoreTimerElapsed()
 	TargetRagDollBlendWeight = 0.f;
 	CurrentRagDollBlendWeight = 1.f;
 	bIsNowRagdollBlending = true;
+}
+
+void ASTPSCharacter::PlayAttackMontage_Server_Implementation()
+{
+	PlayAttackMontage_NetMulticast();
+}
+
+void ASTPSCharacter::PlayAttackMontage_NetMulticast_Implementation()
+{
+	if (false == HasAuthority() && GetOwner() != UGameplayStatics::GetPlayerController(this, 0))
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (false == ::IsValid(AnimInstance))
+		{
+			return;
+		}
+		if (false == AnimInstance->Montage_IsPlaying(RifleFireAnimMontage))
+		{
+			AnimInstance->Montage_Play(RifleFireAnimMontage);
+		}
+	}
 }
 
 void ASTPSCharacter::UpdateInputValue_Server_Implementation(const float& InForwardInputValue, const float& InRightInputValue)

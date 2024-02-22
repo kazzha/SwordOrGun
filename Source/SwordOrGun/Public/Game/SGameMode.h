@@ -16,4 +16,8 @@ public:
 	ASGameMode();
 	
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+private:
+	
+
 };

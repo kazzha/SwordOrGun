@@ -15,6 +15,7 @@
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
 
+
 ASMonster::ASMonster()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -40,11 +41,10 @@ ASMonster::ASMonster()
     WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
     AIStimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
-    if (AIStimuliSource)
-    {
-        AIStimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
-        AIStimuliSource->RegisterWithPerceptionSystem();
-    }
+    AIStimuliSource->bAutoRegister = true;
+
+    AIStimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
+    AIStimuliSource->RegisterWithPerceptionSystem();
 }
 
 void ASMonster::BeginPlay()
@@ -69,6 +69,7 @@ void ASMonster::BeginPlay()
         AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnAttackAnimMontageEnded);
         AnimInstance->PlayBeginPlayAnimMontage();
     }
+
 }
 
 float ASMonster::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -115,11 +116,12 @@ void ASMonster::Attack()
 {
     FHitResult HitResult;
     FCollisionQueryParams Params(NAME_None, false, this);
-
+    FVector ActorLocation = GetActorLocation();
+    FVector ActorForwardVector = GetActorForwardVector();
     bool bResult = GetWorld()->SweepSingleByChannel(
         HitResult,
-        GetActorLocation(),
-        GetActorLocation() + AttackRange * GetActorForwardVector() - 2 * GetActorLocation().Z,
+        ActorLocation,
+        ActorLocation + AttackRange * GetActorForwardVector(),
         FQuat::Identity,
         ECollisionChannel::ECC_EngineTraceChannel2,
         FCollisionShape::MakeSphere(AttackRadius),
@@ -130,7 +132,7 @@ void ASMonster::Attack()
     {
         if (true == ::IsValid(HitResult.GetActor()))
         {
-            UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("[NPC] Hit Actor Name: %s"), *HitResult.GetActor()->GetName()));
+           // UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("[NPC] Hit Actor Name: %s"), *HitResult.GetActor()->GetName()));
         }
     }
 
@@ -158,7 +160,7 @@ void ASMonster::Attack()
         }
     }
 
-
+    /*
 #pragma region CollisionDebugDrawing
     FVector TraceVec = GetActorForwardVector() * AttackRange;
     FVector Center = GetActorLocation() + TraceVec * 0.5f;
@@ -178,7 +180,7 @@ void ASMonster::Attack()
         DebugLifeTime
     );
 #pragma endregion
-
+*/
 }
 
 void ASMonster::OnAttackAnimMontageEnded(UAnimMontage* Montage, bool bIsInterrupt)

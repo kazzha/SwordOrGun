@@ -3,6 +3,9 @@
 #include "Characters/SNonPlayerCharacter2.h"
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Characters/STPSNonPlayerCharacter.h"
+#include "Characters/SMonster.h"
 
 UBTTask_GetEndPatrolPosition::UBTTask_GetEndPatrolPosition()
 {
@@ -27,22 +30,25 @@ EBTNodeResult::Type UBTTask_GetEndPatrolPosition::ExecuteTask(UBehaviorTreeCompo
     ASNonPlayerCharacter2* NPC = Cast<ASNonPlayerCharacter2>(AIController->GetPawn());
     if (false == ::IsValid(NPC))
     {
-        return Result = EBTNodeResult::Failed;
-    }
-
-    UNavigationSystemV1* NS = UNavigationSystemV1::GetNavigationSystem(NPC->GetWorld());
-    if (false == ::IsValid(NS))
-    {
-        return Result = EBTNodeResult::Failed;
+        ASTPSNonPlayerCharacter* TPSNPC = Cast<ASTPSNonPlayerCharacter>(AIController->GetPawn());
+        if (false == ::IsValid(TPSNPC))
+        {
+            ASMonster* Monster = Cast<ASMonster>(AIController->GetPawn());
+            if (false == ::IsValid(Monster))
+            {
+                return Result = EBTNodeResult::Failed;
+            }
+        }
     }
 
     FVector StartPatrolPosition = OwnerComp.GetBlackboardComponent()->GetValueAsVector(ASAIController::StartPatrolPositionKey);
-    FNavLocation EndPatrolLocation;
-    if (true == NS->GetRandomReachablePointInRadius(FVector::ZeroVector, AIController->PatrolRadius, EndPatrolLocation))
-    {
-        OwnerComp.GetBlackboardComponent()->SetValueAsVector(ASAIController::EndPatrolPositionKey, EndPatrolLocation.Location);
-        return Result = EBTNodeResult::Succeeded;
-    }
+
+    float RandomX = FMath::RandRange(0, 1) == 0 ? -200.f : 200.f;
+    float RandomY = FMath::RandRange(0, 1) == 0 ? -200.f : 200.f;
+
+    FVector EndPatrolLocation = StartPatrolPosition + FVector(RandomX, RandomY, 0.f);
+
+    OwnerComp.GetBlackboardComponent()->SetValueAsVector(ASAIController::EndPatrolPositionKey, EndPatrolLocation);
 
     return Result;
 }

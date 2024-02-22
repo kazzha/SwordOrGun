@@ -3,9 +3,12 @@
 #include "Characters/SMonster.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SStatComponent.h"
+#include "Sound/SoundBase.h"
+#include "Kismet/GameplayStatics.h"
 
 USDragonAnimInstance::USDragonAnimInstance()
 {
+
 }
 
 void USDragonAnimInstance::NativeInitializeAnimation()
@@ -74,6 +77,7 @@ void USDragonAnimInstance::PlayFireAnimMontage()
         if (false == Montage_IsPlaying(FireAnimMontage))
         {
             Montage_Play(FireAnimMontage);
+            UGameplayStatics::PlaySound2D(GetWorld(), FireSound);
         }
     }
 }

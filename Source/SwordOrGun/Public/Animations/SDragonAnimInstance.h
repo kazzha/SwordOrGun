@@ -63,4 +63,8 @@ protected:
     TObjectPtr<class UAnimMontage> FireAnimMontage;
 
     FOnCheckDelegate OnCheckDelegate;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Effect Sound", Meta = (AllowPrivateAccess))
+    TObjectPtr<class USoundBase> FireSound;
+
 };

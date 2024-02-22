@@ -118,6 +118,6 @@ void ASPlayerState::SavePlayerState()
 
 	if (true == UGameplayStatics::SaveGameToSlot(PlayerStateSave, SaveSlotName, 0))
 	{
-		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Saved")));
+		// UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Saved")));
 	}
 }

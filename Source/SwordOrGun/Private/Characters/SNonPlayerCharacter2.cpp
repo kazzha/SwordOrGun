@@ -17,6 +17,9 @@
 #include "Game/SGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Characters/SMonster.h"
+#include "Components/ActorComponent.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 
 ASNonPlayerCharacter2::ASNonPlayerCharacter2()
 {
@@ -34,6 +37,8 @@ ASNonPlayerCharacter2::ASNonPlayerCharacter2()
 
     ItemToDrop = ASItem::StaticClass();
 
+    HitSound = CreateDefaultSubobject<USoundBase>(TEXT("HitSound"));
+   
 }
 
 void ASNonPlayerCharacter2::BeginPlay()
@@ -63,6 +68,7 @@ float ASNonPlayerCharacter2::TakeDamage(float Damage, FDamageEvent const& Damage
 {
     float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator,DamageCauser);
 
+    UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
     /*
     if (CurrentHP < KINDA_SMALL_NUMBER)
     {
@@ -101,6 +107,7 @@ float ASNonPlayerCharacter2::TakeDamage(float Damage, FDamageEvent const& Damage
         if (true == ::IsValid(LastHitBy))
         {
             ASCharacter* DamageCauserCharacter = Cast<ASCharacter>(LastHitBy->GetPawn());
+            APlayerController* PlayerController = Cast< APlayerController>(LastHitBy->GetPawn()->GetController());
             if (true == ::IsValid(DamageCauserCharacter))
             {
                 ASPlayerState* PS = Cast<ASPlayerState>(DamageCauserCharacter->GetPlayerState());
@@ -113,7 +120,7 @@ float ASNonPlayerCharacter2::TakeDamage(float Damage, FDamageEvent const& Damage
 
                     if (GameInstance->GetDeathCount() == 7)
                     {
-                        SpawnDragon();
+                        SpawnDragon(PlayerController);
                     }
 
                 }
@@ -124,6 +131,7 @@ float ASNonPlayerCharacter2::TakeDamage(float Damage, FDamageEvent const& Damage
         if (true == ::IsValid(AIController))
         {
             AIController->EndAI();
+            WidgetComponent->SetVisibility(false);
         }
     }
 
@@ -154,7 +162,7 @@ void ASNonPlayerCharacter2::DropItems()
 
 }
 
-void ASNonPlayerCharacter2::SpawnDragon()
+void ASNonPlayerCharacter2::SpawnDragon(APlayerController* PlayerController)
 {
     if (BossMonster)
     {
@@ -162,7 +170,15 @@ void ASNonPlayerCharacter2::SpawnDragon()
         FRotator SPawnRotator = FRotator(0.0f, 90.0f, 0.0f);
 
         ASMonster* SpawnedMonster = GetWorld()->SpawnActor<ASMonster>(BossMonster, SpawnLocation, SPawnRotator);
-        
+        USGameInstance* GameInstance = Cast<USGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+        GameInstance->ChangeBGM();
+        PlayerController->ClientPlayCameraShake(GroundShake);
+
+        ASAIController* AIController = Cast<ASAIController>(SpawnedMonster->GetController());
+        if (true == ::IsValid(AIController))
+        {
+            AIController->BeginAI(SpawnedMonster);
+        }
     }
 }
 
@@ -185,7 +201,7 @@ void ASNonPlayerCharacter2::Attack()
     {
         if (true == ::IsValid(HitResult.GetActor()))
         {
-            UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("[NPC] Hit Actor Name: %s"), *HitResult.GetActor()->GetName()));
+            // UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("[NPC] Hit Actor Name: %s"), *HitResult.GetActor()->GetName()));
         }
     }
 
@@ -212,7 +228,7 @@ void ASNonPlayerCharacter2::Attack()
         }
     }
 
-
+/*
 #pragma region CollisionDebugDrawing
     FVector TraceVec = GetActorForwardVector() * AttackRange;
     FVector Center = GetActorLocation() + TraceVec * 0.5f;
@@ -232,7 +248,7 @@ void ASNonPlayerCharacter2::Attack()
         DebugLifeTime
     );
 #pragma endregion
-    
+   */
 }
 
 void ASNonPlayerCharacter2::OnAttackAnimMontageEnded(UAnimMontage* Montage, bool bIsInterrupt)

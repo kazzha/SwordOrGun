@@ -33,7 +33,7 @@ private:
 	
 	void DropItems();
 
-	void SpawnDragon();
+	void SpawnDragon(APlayerController* PlayerController);
 
 	UFUNCTION()
 	void OnAttackAnimMontageEnded(class UAnimMontage* Montage, bool bIsInterrupt);
@@ -53,4 +53,10 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Spawn")
 	TSubclassOf<class ASMonster> BossMonster;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Effect Sound", Meta = (AllowPrivateAccess))
+	TObjectPtr<class USoundBase> HitSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera Shake", Meta = (AllowPrivateAccess))
+	TSubclassOf<class UCameraShakeBase> GroundShake;
 };

@@ -73,7 +73,7 @@ void ASAIController::EndAI()
     if (true == ::IsValid(BehaviorTreeComponent))
     {
         BehaviorTreeComponent->StopTree();
-        UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("EndAI() has been called.")));
+        // UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("EndAI() has been called.")));
     }
 }
 

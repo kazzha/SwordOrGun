@@ -35,7 +35,7 @@ private:
 private:
 	float AttackRange = 400.f;
 
-	float AttackRadius = 50.f;
+	float AttackRadius = 150.f;
 
 	bool bIsAttacking = false;
 
@@ -45,4 +45,5 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SMonster", Meta = (AllowPrivateAccess))
 	TObjectPtr<class UAIPerceptionStimuliSourceComponent> AIStimuliSource;
 
+	
 };

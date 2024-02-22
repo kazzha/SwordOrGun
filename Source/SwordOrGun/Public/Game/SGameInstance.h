@@ -35,7 +35,11 @@ class SWORDORGUN_API USGameInstance : public UGameInstance
 public:
 	virtual void Init() override;
 
+	virtual void OnStart() override;
+
 	virtual void Shutdown() override;
+
+	void ChangeBGM();
 
 	const UDataTable* GetCharacterStatDataTable() { return CharacterStatDataTable; }
 
@@ -56,6 +60,15 @@ public:
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "USGameInstance", Meta = (AllowPrivateAccess))
 	class UDataTable* CharacterStatDataTable;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BGM", Meta = (AllowPrivateAccess))
+	TObjectPtr<class USoundBase> BGM;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BGM", Meta = (AllowPrivateAccess))
+	TObjectPtr<class USoundBase> BossGroundSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BGM", Meta = (AllowPrivateAccess))
+	class UAudioComponent* AudioComponent;
 
 	int32 CheckDeathCount = 0;
 };

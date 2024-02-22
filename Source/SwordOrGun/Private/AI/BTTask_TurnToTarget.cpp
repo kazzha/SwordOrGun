@@ -2,6 +2,7 @@
 #include "AI/BTTask_TurnToTarget.h"
 #include "Controllers/SAIController.h"
 #include "Characters/SNonPlayerCharacter2.h"
+#include "Characters/SMonster.h"
 #include "Characters/SCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
@@ -31,6 +32,21 @@ EBTNodeResult::Type UBTTask_TurnToTarget::ExecuteTask(UBehaviorTreeComponent& Ow
 				return Result = EBTNodeResult::Succeeded;
 			}
 		}
+		else
+		{
+			ASMonster* Monster = Cast<ASMonster>(AIC->GetPawn());
+			if (ASCharacter* TargetPC = Cast<ASCharacter>
+				(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AIC->TargetActorKey)))
+			{
+				FVector LookVector = TargetPC->GetActorLocation() - Monster->GetActorLocation();
+				LookVector.Z = 0.f;
+				FRotator TargetRotation = FRotationMatrix::MakeFromX(LookVector).Rotator();
+				Monster->SetActorRotation(FMath::RInterpTo(Monster->GetActorRotation(), TargetRotation, GetWorld()->GetDeltaSeconds(), 2.f));
+
+				return Result = EBTNodeResult::Succeeded;
+			}
+		}
+
 	}
 
 

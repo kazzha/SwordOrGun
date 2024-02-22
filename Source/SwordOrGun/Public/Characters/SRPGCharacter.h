@@ -114,4 +114,7 @@ private:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess = true))
     TSubclassOf<class UCameraShakeBase> GroundShake;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Effect Sound", Meta = (AllowPrivateAccess))
+    TObjectPtr<class USoundBase> HitSound;
 };

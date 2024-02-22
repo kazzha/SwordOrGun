@@ -47,4 +47,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USHUD", Meta = (BindWidget))
 	TObjectPtr<class UTextBlock> DeathText;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USHUD", Meta = (BindWidget))
+	TObjectPtr<class UTextBlock> BossText;
+
 };
