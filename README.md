@@ -12,6 +12,8 @@
 
 현재 루트슈터 전투 지원을 위한 TPS 캐릭터와 멀티플레이를 추가 중입니다.
 
+설명 ppt 파일 다운로드 : http://naver.me/IMnTZnRw
+
 ## 2. 플레이 동영상
 
 >Youtube
