@@ -18,7 +18,7 @@
 
 >Youtube
 
-[![이미지](http://img.youtube.com/vi/06UD-kbT6r4/0.jpg)](https://youtu.be/06UD-kbT6r4)
+[![이미지](http://img.youtube.com/vi/vmNgwFHOfpk/0.jpg)](https://youtu.be/vmNgwFHOfpk)
 
 ## 3. 게임 플레이 전개도 
 ![슬라이드0001](https://github.com/kazzha/SwordOrGun/assets/137769077/b505026c-b135-4f24-a723-fbeb86c1a587)
